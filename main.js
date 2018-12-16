@@ -16,7 +16,9 @@ var textColor = 'black'; // Color of grid cell text
 var offset = 2;
 
 // Array holding grid data
-var grid;
+var grid = [];
+
+var cursorPos = 0;
 
 /**
  * Automatically set the optimum canvas size based on window width and height
@@ -37,16 +39,20 @@ window.onload = function() {
 
     // Populate grid with 0s
     numCells = width * height;
-    grid = Array.apply(null, Array(numCells)).map(Number.prototype.valueOf, 0);
+    grid = Array(numCells);
+    for (var i = 0; i < grid.length; i++) {
+        grid[i] = null;
+    }
+    // grid = Array.apply(null, Array(numCells)).map(Number.prototype.valueOf, 0);
 
     document.addEventListener('keydown', function(event) {
-        switch (event.keyCode) {
-        }
+        handleKeyPress(event);
     });
 
     document.addEventListener('click', function(event) {
         index = coordsToIndex(mouseToGrid(getMousePos(event)));
-        grid[index] = (grid[index] == 1 ? 0 : 1);
+        cursorPos = index;
+        // grid[index] = (grid[index] == 1 ? 0 : 1);
     });
 
     c = document.getElementById('canvas');
@@ -57,6 +63,11 @@ window.onload = function() {
     window.addEventListener("resize", setCanvasSize, false);
 
     requestAnimationFrame(draw);
+}
+
+function print(c) {
+    grid[cursorPos] = c;
+    cursorPos++;
 }
 
 /**
@@ -89,8 +100,7 @@ function draw() {
  * Draw each individual cell
  */
 function drawCell(pos, val) {
-    if (val > 0) {
-
+    if (val != null) {
         var x = pos % width;
         var y = (pos - pos % width) / width;
 
@@ -106,7 +116,7 @@ function drawCell(pos, val) {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = textColor;
-        ctx.fillText(Math.pow(2, val), text_x, text_y);
+        ctx.fillText(val, text_x, text_y);
     }
 }
 
@@ -137,4 +147,31 @@ function getMousePos(evt) {
  */
 function coordsToIndex(pos) {
     return pos.y * width + pos.x;
+}
+
+function handleKeyPress(e) {
+    var code = e.keyCode;
+    switch (code) {
+        case 8: // Backspace
+            cursorPos--;
+            grid[cursorPos] = null;
+            break;
+        case 13: // Enter
+            cursorPos = cursorPos - (cursorPos % width) + width;
+            break;
+        default:
+            // Letters
+            if (code >= 65 && code <= 90) {
+                if (!e.shiftKey) {
+                    code += 32;
+                }
+                print(String.fromCharCode(code));
+            } else {
+                if (code in SPECIAL_KEYS) {
+                    var shift = e.shiftKey ? 1 : 0;
+                    print(String.fromCharCode([SPECIAL_KEYS[code][shift]]))
+                }
+            }
+            break;
+    }
 }
