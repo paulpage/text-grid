@@ -45,12 +45,14 @@ window.onload = function() {
     }
     // grid = Array.apply(null, Array(numCells)).map(Number.prototype.valueOf, 0);
 
-    document.addEventListener('keydown', function(event) {
-        handleKeyPress(event);
+    document.addEventListener('keydown', function(e) {
+        var e = window.event || e; // Browser compatibility
+        handleKeyPress(e);
     });
 
-    document.addEventListener('click', function(event) {
-        index = coordsToIndex(mouseToGrid(getMousePos(event)));
+    document.addEventListener('click', function(e) {
+        var e = window.event || e; // Browser compatibility
+        index = coordsToIndex(mouseToGrid(getMousePos(e)));
         cursorPos = index;
         // grid[index] = (grid[index] == 1 ? 0 : 1);
     });
@@ -153,21 +155,34 @@ function handleKeyPress(e) {
     var code = e.keyCode;
     switch (code) {
         case 8: // Backspace
+            e.preventDefault();
             cursorPos--;
             grid[cursorPos] = null;
             break;
+        case 9: // Tab
+            e.preventDefault();
+            var oldPos = cursorPos;
+            cursorPos = cursorPos - cursorPos % width % 4 + 4;
+            for (var i = oldPos; i < cursorPos; i++) {
+                grid[i] = ' ';
+            }
+            break;
         case 13: // Enter
+            e.preventDefault();
+            grid[cursorPos] = '\n';
             cursorPos = cursorPos - (cursorPos % width) + width;
             break;
         default:
             // Letters
             if (code >= 65 && code <= 90) {
+                e.preventDefault();
                 if (!e.shiftKey) {
                     code += 32;
                 }
                 print(String.fromCharCode(code));
             } else {
                 if (code in SPECIAL_KEYS) {
+                    e.preventDefault();
                     var shift = e.shiftKey ? 1 : 0;
                     print(String.fromCharCode([SPECIAL_KEYS[code][shift]]))
                 }
