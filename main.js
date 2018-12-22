@@ -26,14 +26,6 @@ var cursorPos = 0;
  * Automatically set the optimum canvas size based on window width and height
  */
 function setCanvasSize() {
-    // ratio = width / height;
-    // if (window.innerWidth / width < window.innerHeight / height) {
-    //     c.width = window.innerWidth * 1;
-    //     c.height = c.width / width * height;
-    // } else {
-    //     c.height = window.innerHeight * 1;
-    //     c.width = c.height / height * width;
-    // }
     c.width = window.innerWidth * 0.98;
     cellWidth = c.width / width;
     cellHeight = cellWidth * 1.62;
@@ -48,7 +40,6 @@ window.onload = function() {
     for (var i = 0; i < grid.length; i++) {
         grid[i] = null;
     }
-    // grid = Array.apply(null, Array(numCells)).map(Number.prototype.valueOf, 0);
 
     document.addEventListener('keydown', function(e) {
         var e = window.event || e; // Browser compatibility
@@ -59,7 +50,6 @@ window.onload = function() {
         var e = window.event || e; // Browser compatibility
         index = coordsToIndex(mouseToGrid(getMousePos(e)));
         cursorPos = index;
-        // grid[index] = (grid[index] == 1 ? 0 : 1);
     });
 
     document.addEventListener('copy', function(e) {
@@ -77,9 +67,10 @@ window.onload = function() {
     requestAnimationFrame(draw);
 }
 
+var cursorIncrement = 1;
 function print(c) {
     grid[cursorPos] = c;
-    cursorPos++;
+    cursorPos += cursorIncrement;
 }
 
 /**
@@ -142,14 +133,6 @@ function drawCell(pos, val) {
 
 function convertToText() {
     var buffer = [];
-    // for (var i = 0; i < width * height; i++) {
-    //     var line = [];
-    //     if (grid[i]) {
-    //         line.push(grid[i]);
-    //     } else {
-    //         line.push(' ');
-    //     }
-    //     grid[i
     for (var y = 0; y < height; y++) {
         var line = [];
         for (var x = 0; x < width; x++) {
@@ -162,14 +145,9 @@ function convertToText() {
         buffer.push(line.join('').replace(/\s*$/, '\n'));
 
 
-        // while (grid[y * height + x + 1] != null) {
-        //     buffer.push(grid[y * height + x]);
-        //     x++;
-        // }
     }
 
     var str = buffer.join('');
-    console.log(str);
     return buffer.join('').replace(/\n*$/, '\n');
 }
 
@@ -209,8 +187,15 @@ function handleKeyPress(e) {
         switch (code) {
             case 8: // Backspace
                 e.preventDefault();
-                cursorPos--;
-                grid[cursorPos] = null;
+                if (cursorPos != 0) {
+                    cursorPos -= cursorIncrement;
+                    if (grid[cursorPos] === null) {
+                        while (grid[cursorPos] === null && cursorPos > 0) {
+                            cursorPos = Math.max(cursorPos - cursorIncrement, 0);
+                        }
+                    }
+                    grid[cursorPos] = null;
+                }
                 break;
             case 9: // Tab
                 e.preventDefault();
